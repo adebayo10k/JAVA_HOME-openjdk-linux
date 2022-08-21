@@ -1,0 +1,56 @@
+Once I've installed the openjdk version of the Java Development Kit on an Ubuntu machine, I use this procedure to create a JAVA_HOME environment variable that doesn't need to be reconfigured after every upgrade of the openjdk installation.
+
+Firstly, I issue a command to discover the directory in which the java executables are located for this java installation.
+
+```
+echo $(readlink -e `which java` | xargs -0 dirname)
+```
+
+If I'm happy with the output from that, everything else can be derived from it.
+
+# Configuring the JAVA_HOME and PATH environment variables
+
+Rather than adding more and more configurations to the `~/.bashrc` file I've found it a cleaner practice to create a separate small file that  `~/.bashrc` can "include" when it runs.
+
+Let's call that file `~/.java_env_vars` (but you could name it whatever you wish).
+
+## Add an "include condition" to the `~/.bashrc` file
+Open `~/.bashrc` in any text editor and these lines to the end of the file:
+
+```
+# include the java environment configuration file here (if it exists)
+if [ -f "$HOME/.java_env_vars" ]; then
+    . $HOME/.java_env_vars
+fi
+```
+## Create the Java environment configuration file
+Open any text editor, create the Java environment configuration file `~/.java_env_vars` and add this content to it:
+
+```
+#1.  set a java_bin variable to the directory containing the actual Java executables.
+java_bin=$(readlink -e `which java` | xargs -0 dirname)
+
+#2. append "$java_bin" to the PATH environment variable
+export PATH=$PATH:"$java_bin"
+
+#3. assign the directory of the current Java installation to the JAVA_HOME environment variable.
+export JAVA_HOME=$(dirname "$java_bin")
+```
+NOTE: exporting the PATH and JAVA_HOME variables just ensures that they're always available wherever they're needed.
+
+## Test the Java environment variable configuration
+
+Open a new terminal console, and test your new Java environment variables by issuing this command:
+
+```
+echo "$PATH" && echo "$JAVA_HOME"
+```
+
+Output should be two lines, something like this:
+```
+/home/user/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/usr/lib/jvm/java-11-openjdk-amd64/bin
+/usr/lib/jvm/java-11-openjdk-amd64
+```
+
+
+
